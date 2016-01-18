@@ -1,0 +1,33 @@
+$URL = "http://zabbix-dev.domain.com/zabbix"
+$Body1 = @{ 
+                    jsonrpc = "2.0"
+                    method = "user.login"
+                    params = @{
+                    user = "Admin"
+                    password = "zabbix"
+                    }
+                    id = 1
+                    auth = $null
+    }
+
+    $BodyJSON = ConvertTo-Json $Body1
+
+$Authentication = Invoke-RestMethod ("$URL/api_jsonrpc.php") -ContentType "application/json" -Body $BodyJSON -Method Post |Select-Object jsonrpc,@{Name="Session";Expression={$_.Result}},id,@{Name="URL";Expression={$URL}}
+$Auth_Token = $authentication | select -ExpandProperty Session
+
+
+$Body2 = @{
+    jsonrpc= "2.0"
+    method= "host.get"
+    params= @{
+        output = "extend"
+      }  
+       
+    auth = $AUTH_TOKEN
+    id = "0"
+}
+
+$BodyJSON2 = ConvertTo-Json $Body2
+Invoke-RestMethod "$URL/api_jsonrpc.php" -ContentType "application/json" -Body $BodyJSON2 -Method Post | select -ExpandProperty Result |ogv
+
+
